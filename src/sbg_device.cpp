@@ -6,12 +6,6 @@
 #include <fstream>
 #include <ctime>
 
-// Boost headers
-#include <boost/lexical_cast.hpp>
-#include <boost/regex.hpp>
-#include <boost/thread/xtime.hpp>
-#include <boost/date_time/local_time/local_time.hpp>
-
 // SbgECom headers
 #include <version/sbgVersion.h>
 
@@ -19,16 +13,13 @@ using namespace std;
 using sbg::SbgDevice;
 
 // From ros_com/recorder
-std::string timeToStr() //rclcpp::WallTimer<std::function<void()>> ros_t) //TODO: FIXME
+std::string timeToStr()
 {
-  //(void)ros_t;
-  std::stringstream msg;
-  const boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
-  boost::posix_time::time_facet *const f = new boost::posix_time::time_facet("%Y-%m-%d-%H-%M-%S");
-  msg.imbue(std::locale(msg.getloc(),f));
-  msg << now;
-
-  return msg.str();
+    std::stringstream msg;
+    auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    auto tm = *std::localtime(&now);
+    msg << std::put_time(&tm, "%Y-%m-%d-%H-%M-%S");
+    return msg.str();
 }
 
 //
@@ -455,7 +446,7 @@ void SbgDevice::exportMagCalibrationResults() const
   mag_results_stream << mag_calib_results_.matrix[3] << "\t" << mag_calib_results_.matrix[4] << "\t" << mag_calib_results_.matrix[5] << endl;
   mag_results_stream << mag_calib_results_.matrix[6] << "\t" << mag_calib_results_.matrix[7] << "\t" << mag_calib_results_.matrix[8] << endl;
 
-  output_filename = "mag_calib_" + timeToStr()/*(nullptrrclcpp::WallTimer::now())*/ + ".txt";
+  output_filename = "mag_calib_" + timeToStr() + ".txt";
   ofstream output_file(output_filename);
   output_file << mag_results_stream.str();
   output_file.close();
